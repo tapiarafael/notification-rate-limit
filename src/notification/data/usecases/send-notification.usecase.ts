@@ -1,9 +1,7 @@
-import { GatewayService } from 'src/notification/domain/services';
-import {
-  SendNotification,
-  SendNotificationProps,
-} from 'src/notification/domain/usecases';
+import { GatewayService } from '../../domain/services';
+import { SendNotification, SendNotificationProps } from '../../domain/usecases';
 import { NotificationRepository, RuleRepository } from '../repositories';
+import { LimitExceededError } from '../../domain/errors';
 
 export default class SendNotificationUseCase implements SendNotification {
   constructor(
@@ -24,7 +22,7 @@ export default class SendNotificationUseCase implements SendNotification {
         );
 
       if (notificationsCount >= rule.limit) {
-        throw new Error('Too many notifications');
+        throw new LimitExceededError();
       }
     }
 

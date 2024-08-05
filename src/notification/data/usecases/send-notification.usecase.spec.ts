@@ -10,6 +10,7 @@ import {
   RuleInterval,
   RuleModel,
 } from 'src/notification/domain/models';
+import { LimitExceededError } from '../../domain/errors';
 
 class GatewayServiceStub implements GatewayService {
   async send(props: GatewayServiceProps): Promise<void> {
@@ -220,7 +221,7 @@ describe('SendNotificationUseCase', () => {
         userId: 'user',
         message: 'news 1',
       }),
-    ).rejects.toThrow();
+    ).rejects.toThrow(LimitExceededError);
   });
 
   it('should be able to send a notification within the limit', async () => {

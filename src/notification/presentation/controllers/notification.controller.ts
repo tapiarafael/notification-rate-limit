@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpException, Post } from '@nestjs/common';
 import { SendNotificationFactory } from '../factories/send-notification.factory';
 import { SendNotificationDto } from '../dtos/send-notification.dto';
 
@@ -9,9 +9,16 @@ export class NotificationController {
   ) {}
 
   @Post()
-  sendNotification(@Body() body: SendNotificationDto): Promise<void> {
+  async sendNotification(@Body() body: SendNotificationDto): Promise<void> {
     const sendNotification = this.sendNotificationFactory.build();
 
-    return sendNotification.execute(body);
+    try {
+      await sendNotification.execute(body);
+    } catch (error) {
+      if (error.code) {
+        throw new HttpException(error.message, error.code);
+      }
+      throw error;
+    }
   }
 }
