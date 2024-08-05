@@ -1,1 +1,1 @@
-export * from './rules.model';
+export * from './rule.model';

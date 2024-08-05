@@ -1,4 +1,4 @@
-export interface RulesModel {
+export interface RuleModel {
   id: string;
   type: string;
   limit: number;
