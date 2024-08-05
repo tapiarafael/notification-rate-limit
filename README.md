@@ -2,6 +2,12 @@
 
 An implementation of a rate limiter to control the rate of requests to end users based on custom rules.
 
+The application is built with [Node.js](https://nodejs.org/en/), [NestJS](https://nestjs.com/), [TypeScript](https://www.typescriptlang.org/), [Knex](https://knexjs.org/) and [Docker](https://www.docker.com/).
+
+During the development, I've tried to follow the Hexagonal Architecture, so the application is divided into some layers
+
+Also, I've tried my best to use TDD as much as possible, so I've created a test suite with [Jest](https://jestjs.io/)
+
 ## Installation
 
 ```bash
