@@ -5,7 +5,11 @@ import {
 } from 'src/notification/domain/services';
 import SendNotificationUseCase from './send-notification.usecase';
 import { NotificationRepository, RuleRepository } from '../repositories';
-import { RuleInterval, RuleModel } from 'src/notification/domain/models';
+import {
+  NotificationModel,
+  RuleInterval,
+  RuleModel,
+} from 'src/notification/domain/models';
 
 class GatewayServiceStub implements GatewayService {
   async send(props: GatewayServiceProps): Promise<void> {
@@ -33,6 +37,11 @@ class NotificationRepositoryStub implements NotificationRepository {
     period?: RuleInterval,
   ): Promise<number> {
     return Promise.resolve(1);
+  }
+  async saveNotification(
+    notification: Pick<NotificationModel, 'type' | 'userId' | 'message'>,
+  ): Promise<void> {
+    return Promise.resolve();
   }
 }
 
@@ -237,5 +246,26 @@ describe('SendNotificationUseCase', () => {
       'user',
       'minute',
     );
+  });
+
+  it('should save the notification after sent', async () => {
+    const { notificationRepository, sut } = makeSut();
+    const notificationRepositorySpy = jest.spyOn(
+      notificationRepository,
+      'saveNotification',
+    );
+
+    await sut.execute({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
+
+    expect(notificationRepositorySpy).toHaveBeenCalledTimes(1);
+    expect(notificationRepositorySpy).toHaveBeenCalledWith({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
   });
 });

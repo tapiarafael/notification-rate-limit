@@ -29,5 +29,11 @@ export default class SendNotificationUseCase implements SendNotification {
     }
 
     await this.gatewayService.send(props);
+
+    await this.notificationRepository.saveNotification({
+      type: props.type,
+      userId: props.userId,
+      message: props.message,
+    });
   }
 }
