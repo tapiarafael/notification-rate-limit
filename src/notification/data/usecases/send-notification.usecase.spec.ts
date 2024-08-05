@@ -1,10 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   GatewayService,
   GatewayServiceProps,
 } from 'src/notification/domain/services';
 import SendNotificationUseCase from './send-notification.usecase';
-import { RuleRepository } from '../repositories/rule.repository';
-import { RuleModel } from 'src/notification/domain/models';
+import { NotificationRepository, RuleRepository } from '../repositories';
+import { RuleInterval, RuleModel } from 'src/notification/domain/models';
 
 class GatewayServiceStub implements GatewayService {
   async send(props: GatewayServiceProps): Promise<void> {
@@ -17,7 +18,7 @@ class RuleRepositoryStub implements RuleRepository {
     return Promise.resolve({
       type,
       id: 'id',
-      limit: 1,
+      limit: 10,
       every: 'minute',
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -25,13 +26,29 @@ class RuleRepositoryStub implements RuleRepository {
   }
 }
 
+class NotificationRepositoryStub implements NotificationRepository {
+  async countNotificationsByTypeAndUserId(
+    type: string,
+    userId: string,
+    period?: RuleInterval,
+  ): Promise<number> {
+    return Promise.resolve(1);
+  }
+}
+
 const makeSut = () => {
   const gatewayService = new GatewayServiceStub();
   const ruleRepository = new RuleRepositoryStub();
+  const notificationRepository = new NotificationRepositoryStub();
   return {
     gatewayService,
     ruleRepository,
-    sut: new SendNotificationUseCase(gatewayService, ruleRepository),
+    notificationRepository,
+    sut: new SendNotificationUseCase(
+      gatewayService,
+      ruleRepository,
+      notificationRepository,
+    ),
   };
 };
 
@@ -111,5 +128,114 @@ describe('SendNotificationUseCase', () => {
         message: 'news 1',
       }),
     ).rejects.toThrow();
+  });
+
+  it('should send a notification if the rule repository returns null', async () => {
+    const { gatewayService, ruleRepository, sut } = makeSut();
+    const gatewayServiceSpy = jest.spyOn(gatewayService, 'send');
+    const ruleRepositorySpy = jest.spyOn(ruleRepository, 'findByType');
+
+    ruleRepositorySpy.mockImplementation(() => {
+      return Promise.resolve(null);
+    });
+
+    await sut.execute({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
+
+    expect(gatewayServiceSpy).toHaveBeenCalledTimes(1);
+    expect(gatewayServiceSpy).toHaveBeenCalledWith({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
+  });
+
+  it('should call the notification repository with correct params', async () => {
+    const { notificationRepository, sut } = makeSut();
+    const notificationRepositorySpy = jest.spyOn(
+      notificationRepository,
+      'countNotificationsByTypeAndUserId',
+    );
+
+    await sut.execute({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
+
+    expect(notificationRepositorySpy).toHaveBeenCalledTimes(1);
+    expect(notificationRepositorySpy).toHaveBeenCalledWith(
+      'news',
+      'user',
+      'minute',
+    );
+  });
+
+  it('should throw an error if the notification repository throws an error', async () => {
+    const { notificationRepository, sut } = makeSut();
+    const notificationRepositorySpy = jest.spyOn(
+      notificationRepository,
+      'countNotificationsByTypeAndUserId',
+    );
+
+    notificationRepositorySpy.mockImplementation(() => {
+      throw new Error('error');
+    });
+
+    await expect(
+      sut.execute({
+        type: 'news',
+        userId: 'user',
+        message: 'news 1',
+      }),
+    ).rejects.toThrow();
+  });
+
+  it('should throw an error when sending a notification would exceed the limit', async () => {
+    const { notificationRepository, sut } = makeSut();
+    const notificationRepositorySpy = jest.spyOn(
+      notificationRepository,
+      'countNotificationsByTypeAndUserId',
+    );
+
+    notificationRepositorySpy.mockImplementation(() => {
+      return Promise.resolve(10);
+    });
+
+    await expect(
+      sut.execute({
+        type: 'news',
+        userId: 'user',
+        message: 'news 1',
+      }),
+    ).rejects.toThrow();
+  });
+
+  it('should be able to send a notification within the limit', async () => {
+    const { notificationRepository, sut } = makeSut();
+    const notificationRepositorySpy = jest.spyOn(
+      notificationRepository,
+      'countNotificationsByTypeAndUserId',
+    );
+
+    notificationRepositorySpy.mockImplementation(() => {
+      return Promise.resolve(9);
+    });
+
+    await sut.execute({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
+
+    expect(notificationRepositorySpy).toHaveBeenCalledTimes(1);
+    expect(notificationRepositorySpy).toHaveBeenCalledWith(
+      'news',
+      'user',
+      'minute',
+    );
   });
 });
