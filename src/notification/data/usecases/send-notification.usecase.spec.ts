@@ -82,6 +82,20 @@ describe('SendNotificationUseCase', () => {
     ).rejects.toThrow();
   });
 
+  it('should call the rule repository with correct params', async () => {
+    const { ruleRepository, sut } = makeSut();
+    const ruleRepositorySpy = jest.spyOn(ruleRepository, 'findByType');
+
+    await sut.execute({
+      type: 'news',
+      userId: 'user',
+      message: 'news 1',
+    });
+
+    expect(ruleRepositorySpy).toHaveBeenCalledTimes(1);
+    expect(ruleRepositorySpy).toHaveBeenCalledWith('news');
+  });
+
   it('should throw an error if the rule repository throws an error', async () => {
     const { ruleRepository, sut } = makeSut();
     const ruleRepositorySpy = jest.spyOn(ruleRepository, 'findByType');
