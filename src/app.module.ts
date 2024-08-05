@@ -1,11 +1,17 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { NotificationModule } from './notification/notification.module';
+import { ConfigModule } from '@nestjs/config';
+import knexConfig from './knex.config';
 
 @Module({
-  imports: [NotificationModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      load: [knexConfig],
+    }),
+    NotificationModule,
+  ],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}

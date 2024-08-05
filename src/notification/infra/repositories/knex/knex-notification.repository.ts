@@ -1,9 +1,18 @@
 import { NotificationRepository } from 'src/notification/data/repositories';
-import { RuleInterval } from 'src/notification/domain/models';
+import {
+  NotificationModel,
+  RuleInterval,
+} from 'src/notification/domain/models';
 import { KnexProvider } from '../../providers/db/knex.provider';
 
 export class KnexNotificationRepository implements NotificationRepository {
   constructor(private readonly knex: KnexProvider) {}
+
+  async saveNotification(
+    notification: Pick<NotificationModel, 'type' | 'userId' | 'message'>,
+  ): Promise<void> {
+    await this.knex.query().table('notifications').insert(notification);
+  }
 
   async countNotificationsByTypeAndUserId(
     type: string,
