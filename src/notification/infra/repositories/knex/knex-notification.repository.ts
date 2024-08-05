@@ -26,27 +26,27 @@ export class KnexNotificationRepository implements NotificationRepository {
 
     switch (period) {
       case 'minute':
-        return await query
-          .where('sentAt', '>=', new Date(new Date().getTime() - 60000))
-          .count();
+        query.where('sentAt', '>=', new Date(new Date().getTime() - 60000));
+
       case 'hour':
-        return await query
-          .where('sentAt', '>=', new Date(new Date().getTime() - 3600000))
-          .count();
+        query.where('sentAt', '>=', new Date(new Date().getTime() - 3600000));
+
       case 'day':
-        return await query
-          .where('sentAt', '>=', new Date(new Date().getTime() - 86400000))
-          .count();
+        query.where('sentAt', '>=', new Date(new Date().getTime() - 86400000));
+
       case 'week':
-        return await query
-          .where('sentAt', '>=', new Date(new Date().getTime() - 604800000))
-          .count();
+        query.where('sentAt', '>=', new Date(new Date().getTime() - 604800000));
+
       case 'month':
-        return await query
-          .where('sentAt', '>=', new Date(new Date().getTime() - 2629746000))
-          .count();
-      default:
-        return await query.count();
+        query.where(
+          'sentAt',
+          '>=',
+          new Date(new Date().getTime() - 2629746000),
+        );
     }
+
+    const { count } = await query.count().first();
+
+    return Number(count);
   }
 }
