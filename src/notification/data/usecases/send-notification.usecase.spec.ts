@@ -25,12 +25,19 @@ class RuleRepositoryStub implements RuleRepository {
   }
 }
 
+const makeSut = () => {
+  const gatewayService = new GatewayServiceStub();
+  const ruleRepository = new RuleRepositoryStub();
+  return {
+    gatewayService,
+    ruleRepository,
+    sut: new SendNotificationUseCase(gatewayService, ruleRepository),
+  };
+};
+
 describe('SendNotificationUseCase', () => {
   it('should be able to send a notification', () => {
-    const gatewayService = new GatewayServiceStub();
-    const ruleRepository = new RuleRepositoryStub();
-    const sut = new SendNotificationUseCase(gatewayService, ruleRepository);
-
+    const { sut } = makeSut();
     expect(
       sut.execute({
         type: 'news',
@@ -41,10 +48,8 @@ describe('SendNotificationUseCase', () => {
   });
 
   it('should call the gateway service with correct params', async () => {
-    const gatewayService = new GatewayServiceStub();
-    const ruleRepository = new RuleRepositoryStub();
+    const { gatewayService, sut } = makeSut();
     const gatewayServiceSpy = jest.spyOn(gatewayService, 'send');
-    const sut = new SendNotificationUseCase(gatewayService, ruleRepository);
 
     await sut.execute({
       type: 'news',
@@ -61,13 +66,12 @@ describe('SendNotificationUseCase', () => {
   });
 
   it('should throw an error if the gateway service throws an error', async () => {
-    const gatewayService = new GatewayServiceStub();
-    const ruleRepository = new RuleRepositoryStub();
+    const { gatewayService, sut } = makeSut();
     const gatewayServiceSpy = jest.spyOn(gatewayService, 'send');
+
     gatewayServiceSpy.mockImplementation(() => {
       throw new Error('error');
     });
-    const sut = new SendNotificationUseCase(gatewayService, ruleRepository);
 
     await expect(
       sut.execute({
@@ -79,17 +83,12 @@ describe('SendNotificationUseCase', () => {
   });
 
   it('should throw an error if the rule repository throws an error', async () => {
-    const gatewayService = new GatewayServiceStub();
-    const gatewayServiceSpy = jest.spyOn(gatewayService, 'send');
-    gatewayServiceSpy.mockImplementation(() => {
-      throw new Error('error');
-    });
-    const ruleRepository = new RuleRepositoryStub();
+    const { ruleRepository, sut } = makeSut();
     const ruleRepositorySpy = jest.spyOn(ruleRepository, 'findByType');
+
     ruleRepositorySpy.mockImplementation(() => {
       throw new Error('error');
     });
-    const sut = new SendNotificationUseCase(gatewayService, ruleRepository);
 
     await expect(
       sut.execute({
