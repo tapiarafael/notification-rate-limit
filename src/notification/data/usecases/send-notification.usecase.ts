@@ -20,7 +20,7 @@ export default class SendNotificationUseCase implements SendNotification {
         await this.notificationRepository.countNotificationsByTypeAndUserId(
           props.type,
           props.userId,
-          rule.every,
+          rule.period,
         );
 
       if (notificationsCount >= rule.limit) {

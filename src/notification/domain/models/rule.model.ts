@@ -10,7 +10,7 @@ export interface RuleModel {
   id: string;
   type: string;
   limit: number;
-  every: RuleInterval;
+  period: RuleInterval;
   createdAt: Date;
   updatedAt: Date;
 }

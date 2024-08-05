@@ -23,7 +23,7 @@ class RuleRepositoryStub implements RuleRepository {
       type,
       id: 'id',
       limit: 10,
-      every: 'minute',
+      period: 'minute',
       createdAt: new Date(),
       updatedAt: new Date(),
     });
