@@ -6,7 +6,11 @@ export class KnexRuleRepository implements RuleRepository {
   constructor(private readonly knex: KnexProvider) {}
 
   async findByType(type: string): Promise<RuleModel | null> {
-    const rule = await this.knex.query().table('rules').where({ type }).first();
+    const rule = await this.knex
+      .query()
+      .table('rules')
+      .whereILike('type', type)
+      .first();
 
     return rule;
   }

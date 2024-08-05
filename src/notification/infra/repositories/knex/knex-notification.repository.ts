@@ -22,7 +22,8 @@ export class KnexNotificationRepository implements NotificationRepository {
     const query = this.knex
       .query()
       .table('notifications')
-      .where({ type, userId });
+      .where({ userId })
+      .whereILike('type', type);
 
     switch (period) {
       case 'minute':
